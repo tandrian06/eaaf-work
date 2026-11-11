@@ -4,7 +4,7 @@ EAAF Work is the chat and document-search application for EAAF. It serves the Gl
 
 ## Run locally
 
-Start EAAF Core using its Docker Compose instructions. From this repository in PowerShell with Python 3.14:
+Start EAAF Core with the scoped authorization and embeddings endpoints using its Docker Compose instructions. From this repository in PowerShell with Python 3.14:
 
 ```powershell
 python -m venv .venv
@@ -14,21 +14,31 @@ python -m venv .venv
 
 Open [EAAF Work](http://127.0.0.1:8001/) and enter the application key for the selected space from Core's local `.env`. Work uses `http://127.0.0.1:8000` by default. Set `EAAF_GATEWAY_URL` before starting Work to use another Gateway.
 
+## Department search
+
+Choose HR, enter the HR application key, enable **Use department knowledge**, and ask **Comment poser des congés ?**. The answer includes the source `hr-leave`. IT and Marketing have their own fictional corpora. Global offers chat.
+
+Work loads the Markdown files listed in `config/knowledge.yaml`. To add a source, place a short UTF-8 Markdown file in the matching `knowledge/` directory, register a title and keywords in the manifest, and restart Work.
+
+Keyword search runs locally. Semantic search is available when Core enables the OpenAI overlay and permits the embedding alias for the department. Work holds the document vectors in memory and sends embedding batches through Core. Each batch and each generation counts as its own governed request. Use synthetic inputs with external providers.
+
 ## Architecture
 
 ```mermaid
 flowchart LR
-    Browser["Browser · Global, HR, IT, Marketing"] -->|"Chat and application key"| Work["EAAF Work · port 8001"]
-    Work -->|"Scoped chat API"| Core["EAAF Core · port 8000"]
-    Core --> Corpus["Department documents and retrieval"]
-    Core --> LiteLLM["LiteLLM Proxy"]
-    LiteLLM --> Provider["Local mock or optional OpenAI"]
+    Browser["Browser"] --> Portal
+    subgraph Work["AI for Work"]
+        Portal["Chat portal"] --> RAG["Department RAG"]
+    end
+    subgraph Core["EAAF Core"]
+        Gateway["Gateway · authentication and policies"] --> Router["LiteLLM Proxy"]
+    end
+    Portal -->|"Check key, department, and model"| Gateway
+    RAG -->|"Generation and optional embeddings"| Gateway
+    Router --> Provider["Local mock or optional OpenAI"]
 ```
 
-
-The browser loads the UI from Work. Work forwards model options and chat requests to Core on the same browser origin. The browser holds the application key in page memory. Work forwards the Authorization header to Core and does not persist it. Core remains responsible for application identity, model access, usage limits, audit, and department-scoped RAG during this first extraction increment.
-
-The existing Core UI is still available for compatibility. Moving document retrieval and its authorization boundary into Work is a separate increment.
+Work asks Core to authorize the application key, department, and selected model before searching a corpus. Work forwards the same credential for generation and optional embeddings. Core applies usage limits and audit to those model calls. The browser holds the key in page memory.
 
 ## Tests
 
