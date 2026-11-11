@@ -16,6 +16,16 @@ Open [EAAF Work](http://127.0.0.1:8001/) and enter the application key for the s
 
 ## Architecture
 
+```mermaid
+flowchart LR
+    Browser["Browser · Global, HR, IT, Marketing"] -->|"Chat and application key"| Work["EAAF Work · port 8001"]
+    Work -->|"Scoped chat API"| Core["EAAF Core · port 8000"]
+    Core --> Corpus["Department documents and retrieval"]
+    Core --> LiteLLM["LiteLLM Proxy"]
+    LiteLLM --> Provider["Local mock or optional OpenAI"]
+```
+
+
 The browser loads the UI from Work. Work forwards model options and chat requests to Core on the same browser origin. The browser holds the application key in page memory. Work forwards the Authorization header to Core and does not persist it. Core remains responsible for application identity, model access, usage limits, audit, and department-scoped RAG during this first extraction increment.
 
 The existing Core UI is still available for compatibility. Moving document retrieval and its authorization boundary into Work is a separate increment.
