@@ -59,7 +59,10 @@ def test_keyword_and_semantic_search_keep_department_scope():
             ]})
         assert request.url.path == "/chat/hr/completions"
         assert "use_knowledge" not in payload
-        assert "five working days" in payload["messages"][0]["content"]
+        instructions = payload["messages"][0]["content"]
+        assert "latest user message" in instructions
+        assert "For a French question, answer in French" in instructions
+        assert "five working days" in instructions
         assert "VPN" not in payload["messages"][0]["content"]
         return httpx.Response(200, json={"object": "chat.completion"})
 
