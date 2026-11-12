@@ -14,6 +14,10 @@ python -m venv .venv
 
 Open [EAAF Work](http://127.0.0.1:8001/) and enter the application key for the selected space from Core's local `.env`. Work uses `http://127.0.0.1:8000` by default. Set `EAAF_GATEWAY_URL` before starting Work to use another Gateway.
 
+## Connect to EAAF Core on AWS
+
+The EAAF Core AWS PoC keeps Work on your workstation. Session Manager forwards a local port to the Gateway on Fargate. Start Work with `EAAF_GATEWAY_URL=http://127.0.0.1:18000` in the process environment while the tunnel is open. Use a PoC application key for the selected space. [EAAF Core AWS PoC](https://github.com/tandrian06/eaaf-core-aws-poc) **(private · GitHub access required)**.
+
 ## Department search
 
 Choose HR, enter the HR application key, enable **Use department knowledge**, and ask **Comment poser des congés ?**. The answer includes the source `hr-leave`. IT and Marketing have their own fictional corpora. Global offers chat.
