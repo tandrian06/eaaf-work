@@ -22,6 +22,12 @@ Work loads the Markdown files listed in `config/knowledge.yaml`. To add a source
 
 Keyword search runs locally. Semantic search is available when Core enables the OpenAI overlay and permits the embedding alias for the department. Work holds the document vectors in memory and sends embedding batches through Core. Each batch and each generation counts as its own governed request. Use synthetic inputs with external providers.
 
+## Try Claude in HR
+
+Enable Anthropic in [EAAF Core](https://github.com/tandrian06/eaaf#optional-anthropic-mode). In the HR space, enter the HR application key and select `eaaf-claude-haiku`. Enable **Use department knowledge**, choose keyword search, and ask **Comment poser des congés ?**. Work retrieves the `hr-leave` source locally and sends the selected excerpt through Core and LiteLLM to Anthropic. Work asks Claude to reply in French. The Sources panel shows the original English excerpt.
+
+With both providers enabled in Core, select `eaaf-openai-mini` to compare generation using the same documents. Semantic retrieval continues to use OpenAI embeddings.
+
 ## Architecture
 
 ```mermaid
@@ -35,7 +41,9 @@ flowchart LR
     end
     Portal -->|"Check key, department, and model"| Gateway
     RAG -->|"Generation and optional embeddings"| Gateway
-    Router --> Provider["Local mock or optional OpenAI"]
+    Router --> Mock["Local mock"]
+    Router -.-> OpenAI["OpenAI · generation and embeddings"]
+    Router -.-> Claude["Anthropic · Claude generation"]
 ```
 
 Work asks Core to authorize the application key, department, and selected model before searching a corpus. Work forwards the same credential for generation and optional embeddings. Core applies usage limits and audit to those model calls. The browser holds the key in page memory.
