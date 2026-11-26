@@ -84,6 +84,10 @@ def create_app(gateway_url: str | None = None, transport=None) -> FastAPI:
             yield
 
     app = FastAPI(title="EAAF Work", lifespan=lifespan)
+    @app.get("/healthz")
+    async def health():
+        return {"status": "ok"}
+
     app.mount("/chat-assets", StaticFiles(directory=ASSETS), name="chat-assets")
 
     @app.get("/", include_in_schema=False)

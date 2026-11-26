@@ -87,3 +87,11 @@ def test_gateway_timeout_is_reported_without_exposing_url():
         response = client.get("/chat/it/options")
     assert response.status_code == 504
     assert response.json() == {"detail": "Gateway request timed out"}
+
+
+def test_health_reports_work_process_without_contacting_core():
+    def unexpected_request(request):
+        raise AssertionError("Work health check contacted Core")
+
+    with TestClient(create_app(transport=httpx.MockTransport(unexpected_request))) as client:
+        assert client.get("/healthz").json() == {"status": "ok"}
