@@ -54,3 +54,40 @@ Work asks Core to authorize the application key, department, and selected model 
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 .\.venv\Scripts\python.exe -m pytest -q
 ```
+
+## Standalone container
+
+Build and start Work with the Core URL reachable from the Work container.
+
+~~~powershell
+$env:EAAF_GATEWAY_URL = 'https://YOUR_CORE_ENDPOINT'
+docker compose up --build --wait
+~~~
+
+Open http://127.0.0.1:8001/chat/hr. Enter the HR application key issued by
+the selected Core deployment. Work forwards that credential for the scoped
+authorization and completion calls. Keep provider credentials and the
+LiteLLM master key on Core.
+
+Work's Compose project has its own lifecycle and contains only Work.
+It packages the department corpus and exposes the frontend on host loopback.
+The process health endpoint is /healthz. It reports Work availability.
+Verify /chat/hr/options and an authenticated completion to check the Core
+connection. Core connection failures are reported as 502 and timeouts as 504.
+
+For local Docker Desktop testing, a host API may be reachable through
+http://host.docker.internal:8000. Verify connectivity with the host API's
+actual binding. An address using 127.0.0.1 from inside Work refers to the
+Work container. In AWS, configure Core's private service endpoint.
+
+Changing EAAF_GATEWAY_URL requires recreating Work. Changes to the packaged
+corpus require rebuilding the Work image. The browser holds the application
+key in memory. The remote Core determines available models and enforces its
+own policies, quotas and audit.
+
+For a private Core certificate, mount its public PEM certificate into Work
+and set EAAF_GATEWAY_CA_FILE to that path inside the container. Work checks
+the certificate chain and the hostname or IP in EAAF_GATEWAY_URL.
+The certificate's private key stays on Core. A missing or invalid CA file
+fails Work startup. Certificate replacement requires redistributing the
+public certificate and recreating Work.
