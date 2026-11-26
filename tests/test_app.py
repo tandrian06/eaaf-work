@@ -95,3 +95,11 @@ def test_health_reports_work_process_without_contacting_core():
 
     with TestClient(create_app(transport=httpx.MockTransport(unexpected_request))) as client:
         assert client.get("/healthz").json() == {"status": "ok"}
+
+
+def test_invalid_private_core_certificate_fails_startup(monkeypatch, tmp_path):
+    import pytest
+    monkeypatch.setenv("EAAF_GATEWAY_CA_FILE", str(tmp_path / "missing.pem"))
+    with pytest.raises(FileNotFoundError):
+        with TestClient(create_app()):
+            pass

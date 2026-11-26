@@ -1,4 +1,5 @@
 import os
+import ssl
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
@@ -72,10 +73,13 @@ def relay(upstream: httpx.Response) -> Response:
 def create_app(gateway_url: str | None = None, transport=None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        ca_file = os.getenv("EAAF_GATEWAY_CA_FILE")
+        verification = ssl.create_default_context(cafile=ca_file) if ca_file else True
         async with httpx.AsyncClient(
             base_url=gateway_url or os.getenv("EAAF_GATEWAY_URL", "http://127.0.0.1:8000"),
             timeout=60,
             trust_env=False,
+            verify=verification,
             transport=transport,
         ) as gateway:
             app.state.gateway = gateway

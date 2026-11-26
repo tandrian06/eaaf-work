@@ -84,3 +84,10 @@ Changing EAAF_GATEWAY_URL requires recreating Work. Changes to the packaged
 corpus require rebuilding the Work image. The browser holds the application
 key in memory. The remote Core determines available models and enforces its
 own policies, quotas and audit.
+
+For a private Core certificate, mount its public PEM certificate into Work
+and set EAAF_GATEWAY_CA_FILE to that path inside the container. Work checks
+the certificate chain and the hostname or IP in EAAF_GATEWAY_URL.
+The certificate's private key stays on Core. A missing or invalid CA file
+fails Work startup. Certificate replacement requires redistributing the
+public certificate and recreating Work.
